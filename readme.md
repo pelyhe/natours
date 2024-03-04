@@ -23,7 +23,7 @@ The following technologies were being used throughout the course (only the most 
 
 ### Cross-site scripting (XSS) attacks
 - Store JWT in **HTTPOnly** cookies
-- Sanitize user input data
+- Sanitize user input data - **xss-clean**
 - Special HTTP headers with **helmet** package
 
 ### Denial-of-service (DOS) attacks
@@ -32,8 +32,9 @@ The following technologies were being used throughout the course (only the most 
 - Avoid evil regular expressions
 
 ### NoSQL query injection
+- Can be very powerful, must defense against it
 - Using **mongoose** helps a lot beacuse of SchemaTypes
-- Sanitize user input data
+- Sanitize user input data - **express-mongo-sanitize**
 
 ### Other security best practises:
 
@@ -46,6 +47,6 @@ The following technologies were being used throughout the course (only the most 
 - Require re-authentication before a high-value action
 - Unokenent a blacklist of untrusted JWTs
 - Confirm user email address after first creating account
-- Keep user logged in with **refresh tokens**
+- Keep user logged in with **refresh tokens** instead of JWTs
 - Two-factor authentication
-- Prevent parameter pollution causing Uncaught Exceptions
+- Prevent parameter pollution causing Uncaught Exceptions using **hpp** library

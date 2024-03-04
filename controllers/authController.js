@@ -12,12 +12,29 @@ const signToken = (id) => {
     });
 };
 
+// NOTE: send JWT token via HTTPOnly cookie
 const createSendToken = (user, statusCode, res) => {
     const token = signToken(user._id);
 
+    // convert cookie expiry in milliseconds
+    const cookieOptions = {
+        expires: new Date(
+            Date.now() +
+                process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
+        ),
+        // secure: true, // encrypted, https, only in prod
+        httpOnly: true, // cookie cannot be accessed through browser, IMPORTANT!
+    };
+
+    if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+
+    res.cookie('jwt', token, cookieOptions);
+
+    // remove pass from output
+    user.password = undefined;
+
     res.status(200).json({
         status: 'success',
-        token: token,
     });
 };
 
