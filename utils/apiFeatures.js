@@ -12,7 +12,6 @@ class APIFeatures {
         const excludedFields = ['page', 'limit', 'sort', 'fields'];
         excludedFields.forEach((el) => delete queryObj[el]);
 
-        // Construct query => awaiting here would not work since it awaits the first element only
         // NOTE: operators (such as greater than) should look like this in the url:
         // NOTE: {{HOST_NAME}}/api/v1/tours?page[gte]=2&...
         // it will look like this: { price: { gte: '200' }, ... }

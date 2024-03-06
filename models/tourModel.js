@@ -80,6 +80,37 @@ const tourSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        startLocation: {
+            // GeoJSON
+            type: {
+                type: String,
+                default: 'Point',
+                enum: ['Point'],
+            },
+            coordinates: [Number],
+            address: String,
+            description: String,
+        },
+        locations: [
+            {
+                // GeoJSON
+                type: {
+                    type: String,
+                    default: 'Point',
+                    enum: ['Point'],
+                },
+                coordinates: [Number],
+                address: String,
+                description: String,
+                day: Number,
+            },
+        ],
+        guides: [
+            {
+                type: mongoose.Schema.ObjectId,
+                ref: 'User',
+            },
+        ],
     },
     {
         toJSON: { virtuals: true }, // NOTE: FOR THE VIRTUAL PROPERTIES!
@@ -90,9 +121,16 @@ const tourSchema = new mongoose.Schema(
 // define virtual property
 // it wont be persisted in the DB, but it will be attached for every query
 // NOTE: IMPORTANT! we cannot reference virtual properties in queries!
-// NOTE: IMPORTANT! To use this property it cannot be an arrow function!
 tourSchema.virtual('durationWeeks').get(function () {
     return this.duration / 7;
+});
+
+// NOTE: VIRTUAL POPULATE
+// virtual field for the child reference without persisting it in DB
+tourSchema.virtual('reviews', {
+    ref: 'Review',
+    foreignField: 'tour',
+    localField: '_id',
 });
 
 // Document middleware
@@ -101,6 +139,30 @@ tourSchema.pre('save', function (next) {
     this.slug = slugify(this.name, { lower: true });
     next();
 });
+
+// NOTE: POPULATE extracts the referenced elements and instead of ids
+// NOTE: the full object will be displayed
+tourSchema.pre(/^find/, function (next) {
+    this.populate({
+        path: 'guides',
+        select: '-__v -passwordChangedAt',
+    });
+
+    next();
+});
+
+// NOTE: using this, creating a new tour only requires the tour guides' ids,
+// NOTE: and it will automatically copy the user object to this.guides.
+// NOTE: IMPORTANT: using this, after every user update we would have to update this entity as well -> referencing is better
+// tourSchema.pre('save', async function (next) {
+//     const guidesPromises = this.guides.map(
+//         async (id) => await User.findById(id),
+//     );
+
+//     this.guides = await Promise.all(guidesPromises);
+
+//     next();
+// });
 
 // Post middleware
 // NOTE: it runs AFTER save() and create()

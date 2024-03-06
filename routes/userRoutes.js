@@ -10,25 +10,22 @@ router.post('/login', authController.login);
 router.post('/forgotPassword', authController.forgotPassword);
 router.patch('/resetPassword/:token', authController.resetPassword);
 
-router.patch(
-    '/updateMyPassword',
-    authController.protectRoute,
-    authController.updatePassword,
-);
+// Protect all routes after this
+router.use(authController.protectRoute);
 
-router.patch(
-    '/updateProfile',
-    authController.protectRoute,
-    userController.updateMe,
-);
+router.route('/me').get(userController.getMe, userController.getUser);
+router.patch('/updateMyPassword', authController.updatePassword);
+router.patch('/updateProfile', userController.updateMe);
+router.delete('/deleteProfile', userController.deleteMe);
 
-router.delete(
-    '/deleteProfile',
-    authController.protectRoute,
-    userController.deleteMe,
-);
+// Only admins after this route
+router.use(authController.restrictTo('admin'));
 
 router.route('/').get(userController.getAllUsers);
-router.route('/:id').patch(userController.updateUser);
+router
+    .route('/:id')
+    .patch(userController.updateUser)
+    .delete(userController.deleteUser)
+    .get(userController.getUser);
 
 module.exports = router;

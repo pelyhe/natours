@@ -1,6 +1,7 @@
 const User = require('../models/userModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const factory = require('./handleFactory');
 
 const filterObj = (obj, ...allowFields) => {
     const newObj = {};
@@ -13,20 +14,19 @@ const filterObj = (obj, ...allowFields) => {
     return newObj;
 };
 
-exports.getAllUsers = catchAsync(async (req, res, next) => {
-    const users = await User.find();
+exports.getUser = factory.getOne(User);
 
-    res.status(200).json({
-        status: 'success',
-        length: users.length,
-        data: {
-            users,
-        },
-    });
-});
+// Do NOT update password here
+exports.updateUser = factory.updateOne(User);
 
-exports.createUser = (req, res, next) =>
-    res.status(201).json({ message: 'OK' });
+exports.deleteUser = factory.deleteOne(User);
+
+exports.getAllUsers = factory.getAll(User);
+
+exports.getMe = (req, res, next) => {
+    req.params.id = req.user.id;
+    return next();
+};
 
 exports.updateMe = catchAsync(async (req, res, next) => {
     if (req.body.password || req.body.passwordConfirm) {
@@ -69,25 +69,3 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
         data: null,
     });
 });
-exports.getUser = (req, res, next) => res.status(200).json({ message: 'OK' });
-
-exports.updateUser = catchAsync(async (req, res, next) => {
-    const user = await User.findByIdAndUpdate(req.params.id, req.body, {
-        new: true, // NOTE: return the new document instead of the old one
-        runValidators: true, // NOTE: validate the updated object against the schema
-    });
-
-    if (!user) {
-        return next(new AppError('No user was found with this ID', 404));
-    }
-
-    return res.status(200).json({
-        status: 'success',
-        data: {
-            user,
-        },
-    });
-});
-
-exports.deleteUser = (req, res, next) =>
-    res.status(204).json({ message: 'OK' });
